@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to Hierarchy Converter</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #4CAF50;
+            background-color: #f9f9f9;
+        }
+        .upload-area.dragover {
+            border-color: #4CAF50;
+            background-color: #e8f5e8;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .output-section {
+            margin-top: 30px;
+        }
+        .output-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .stats {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .image-config {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeeba;
+        }
+        .config-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+        .config-input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+        }
+        .preview-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f8ff;
+            border-radius: 6px;
+        }
+        .preview-tree {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .tree-level-1 { margin-left: 0; font-weight: bold; color: #2c3e50; }
+        .tree-level-2 { margin-left: 20px; font-weight: 600; color: #34495e; }
+        .tree-level-3 { margin-left: 40px; color: #5d6d7e; }
+        .tree-level-4 { margin-left: 60px; color: #7b7d7d; }
+        .tree-item { margin-left: 80px; color: #27ae60; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CSV to Hierarchy Converter</h1>
+        <p class="subtitle">Convert your CSV data into the JavaScript format needed for the climate argument selector</p>
+        
+        <!-- Image Configuration -->
+        <div class="image-config">
+            <h3>📷 Image Configuration</h3>
+            <div class="config-row">
+                <label>Image Base URL:</label>
+                <input type="text" id="imageBaseUrl" class="config-input" 
+                       placeholder="https://yourdomain.com/images/" 
+                       value="">
+                <small>Leave blank if using local files</small>
+            </div>
+            <div class="config-row">
+                <label>Local Image Folder:</label>
+                <input type="text" id="imageFolderPath" class="config-input" 
+                       placeholder="./images/" 
+                       value="./images/">
+                <small>Path to your image folder (for local hosting)</small>
+            </div>
+        </div>
+
+        <!-- File Upload -->
+        <div class="upload-area" id="uploadArea">
+            <h3>📁 Upload Your CSV File</h3>
+            <p>Drag and drop your CSV file here, or click to select</p>
+            <input type="file" id="csvFile" accept=".csv" />
+            <br>
+            <button class="btn" onclick="document.getElementById('csvFile').click()">Choose File</button>
+            <button class="btn btn-secondary" onclick="loadSampleData()">Load Sample Data</button>
+        </div>
+
+        <!-- Output Section -->
+        <div class="output-section" id="outputSection" style="display: none;">
+            <div class="stats" id="stats"></div>
+            
+            <div class="preview-section">
+                <h3>📋 Hierarchy Preview</h3>
+                <div class="preview-tree" id="preview"></div>
+            </div>
+            
+            <h3>📄 Generated JavaScript Code</h3>
+            <div class="output-box" id="output"></div>
+            
+            <button class="btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+            <button class="btn btn-secondary" onclick="downloadJS()">💾 Download as .js File</button>
+            <button class="btn btn-secondary" onclick="testHierarchy()">🧪 Test in Selector</button>
+        </div>
+
+        <div class="error" id="error" style="display: none;"></div>
+    </div>
+
+    <script>
+        let convertedData = null;
+        let csvData = null;
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const csvFile = document.getElementById('csvFile');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        csvFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                showError('Please select a CSV file.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const csvText = e.target.result;
+                processCSV(csvText);
+            };
+            reader.readAsText(file);
+        }
+
+        function loadSampleData() {
+            const sampleCSV = `Level1,Level2,Level3,Level4,ItemID,ItemName,ItemType,TextContent,ImageFilename,AltText,Description,Tags
+Economic,Costs,Energy,Renewable,solar_cost_2023,Solar Panel Installation Costs,text,"Solar panel installation costs have decreased by 85% since 2010, making renewable energy more affordable than fossil fuels in most markets.",,,"Cost analysis showing solar affordability","economic,costs,renewable,solar"
+Economic,Benefits,Jobs,Green,green_jobs_growth,Green Jobs Growth Chart,image,,green_jobs_2023.png,"Bar chart showing 3.3 million green jobs created in 2023","Visual representation of job growth in clean energy sector","economic,benefits,jobs,employment"
+Economic,Costs,Transition,Infrastructure,grid_modernization,Smart Grid Investment,text,"Modernizing the electrical grid will require $2.5 trillion but will enable renewable energy integration and improve reliability.",,,"Investment needed for grid transformation","economic,costs,infrastructure,grid"
+Scientific,Data,Temperature,Global,temp_rise_chart,Global Temperature Anomaly,image,,global_temp_anomaly.png,"Line graph showing 1.1°C global temperature rise since 1880","Clear visualization of global warming trend","scientific,data,temperature,climate"
+Social,Justice,Communities,Vulnerable,frontline_impacts,Frontline Community Impacts,text,"Low-income communities and communities of color face disproportionate climate impacts despite contributing least to greenhouse gas emissions.",,,"Environmental justice perspective on climate impacts","social,justice,equity,communities"
+Economic,Benefits,Jobs,Green,green_jobs_text,Clean Energy Employment,text,"The clean energy sector employed 3.3 million Americans in 2022, with 67% growth expected by 2030 according to the Bureau of Labor Statistics.",,,"Statistics on clean energy job growth","economic,benefits,jobs,employment"`;
+            processCSV(sampleCSV);
+        }
+
+        function processCSV(csvText) {
+            try {
+                // Parse CSV
+                const lines = csvText.trim().split('\n');
+                const headers = lines[0].split(',').map(h => h.trim());
+                
+                // Validate headers
+                const requiredHeaders = ['Level1', 'Level2', 'ItemID', 'ItemName', 'ItemType'];
+                const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+                
+                if (missingHeaders.length > 0) {
+                    throw new Error(`Missing required columns: ${missingHeaders.join(', ')}`);
+                }
+
+                // Parse data rows
+                csvData = [];
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '') continue;
+                    
+                    const values = parseCSVLine(lines[i]);
+                    const row = {};
+                    
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] || '';
+                    });
+                    
+                    csvData.push(row);
+                }
+
+                convertToHierarchy();
+                hideError();
+                
+            } catch (error) {
+                showError(`Error processing CSV: ${error.message}`);
+            }
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        function convertToHierarchy() {
+            const hierarchy = {};
+            const imageBaseUrl = document.getElementById('imageBaseUrl').value;
+            const imageFolderPath = document.getElementById('imageFolderPath').value;
+            
+            // Build hierarchy structure
+            csvData.forEach(row => {
+                // Clean up the path
+                const level1Key = row.Level1.toLowerCase().replace(/\s+/g, '_');
+                const level2Key = row.Level2.toLowerCase().replace(/\s+/g, '_');
+                const level3Key = row.Level3 ? row.Level3.toLowerCase().replace(/\s+/g, '_') : null;
+                const level4Key = row.Level4 ? row.Level4.toLowerCase().replace(/\s+/g, '_') : null;
+                
+                // Initialize structure
+                if (!hierarchy[level1Key]) {
+                    hierarchy[level1Key] = {
+                        name: row.Level1,
+                        description: `Arguments focused on ${row.Level1.toLowerCase()}`,
+                        subcategories: {}
+                    };
+                }
+                
+                if (!hierarchy[level1Key].subcategories[level2Key]) {
+                    hierarchy[level1Key].subcategories[level2Key] = {
+                        name: row.Level2,
+                        description: `${row.Level2} related arguments`,
+                        subcategories: {},
+                        items: {}
+                    };
+                }
+                
+                // Handle deeper levels
+                let targetLevel = hierarchy[level1Key].subcategories[level2Key];
+                
+                if (level3Key) {
+                    if (!targetLevel.subcategories[level3Key]) {
+                        targetLevel.subcategories[level3Key] = {
+                            name: row.Level3,
+                            description: `${row.Level3} related arguments`,
+                            subcategories: {},
+                            items: {}
+                        };
+                    }
+                    targetLevel = targetLevel.subcategories[level3Key];
+                    
+                    if (level4Key) {
+                        if (!targetLevel.subcategories[level4Key]) {
+                            targetLevel.subcategories[level4Key] = {
+                                name: row.Level4,
+                                description: `${row.Level4} related arguments`,
+                                items: {}
+                            };
+                        }
+                        targetLevel = targetLevel.subcategories[level4Key];
+                    }
+                }
+                
+                // Add item
+                const item = {
+                    name: row.ItemName,
+                    type: row.ItemType,
+                    tags: row.Tags ? row.Tags.split(',').map(t => t.trim()) : []
+                };
+                
+                if (row.ItemType === 'image') {
+                    // Handle image content
+                    let imageUrl = row.ImageFilename;
+                    if (imageBaseUrl && !imageUrl.startsWith('http')) {
+                        imageUrl = imageBaseUrl + imageUrl;
+                    } else if (!imageUrl.startsWith('http') && imageFolderPath) {
+                        imageUrl = imageFolderPath + imageUrl;
+                    }
+                    
+                    item.content = imageUrl;
+                    item.alt = row.AltText;
+                    item.description = row.Description;
+                } else {
+                    item.content = row.TextContent;
+                    if (row.Description) {
+                        item.description = row.Description;
+                    }
+                }
+                
+                targetLevel.items[row.ItemID] = item;
+            });
+
+            convertedData = hierarchy;
+            displayResults();
+        }
+
+        function displayResults() {
+            // Show output section
+            document.getElementById('outputSection').style.display = 'block';
+            
+            // Display stats
+            const stats = document.getElementById('stats');
+            const totalItems = csvData.length;
+            const uniqueItems = new Set(csvData.map(row => row.ItemID)).size;
+            const imageItems = csvData.filter(row => row.ItemType === 'image').length;
+            const textItems = csvData.filter(row => row.ItemType === 'text').length;
+            const categories = Object.keys(convertedData).length;
+            
+            stats.innerHTML = `
+                <h3>📊 Conversion Statistics</h3>
+                <strong>Total CSV Rows:</strong> ${totalItems}<br>
+                <strong>Unique Items:</strong> ${uniqueItems}<br>
+                <strong>Duplicate Paths:</strong> ${totalItems - uniqueItems}<br>
+                <strong>Categories:</strong> ${categories}<br>
+                <strong>Text Items:</strong> ${textItems}<br>
+                <strong>Image Items:</strong> ${imageItems}
+            `;
+            
+            // Display preview
+            displayPreview();
+            
+            // Display code
+            const output = document.getElementById('output');
+            const jsCode = `const hierarchyData = ${JSON.stringify(convertedData, null, 4)};`;
+            output.textContent = jsCode;
+        }
+
+        function displayPreview() {
+            const preview = document.getElementById('preview');
+            let html = '';
+            
+            Object.keys(convertedData).forEach(level1Key => {
+                const level1 = convertedData[level1Key];
+                html += `<div class="tree-level-1">📁 ${level1.name}</div>`;
+                
+                Object.keys(level1.subcategories).forEach(level2Key => {
+                    const level2 = level1.subcategories[level2Key];
+                    html += `<div class="tree-level-2">📂 ${level2.name}</div>`;
+                    
+                    // Check for sub-subcategories
+                    if (Object.keys(level2.subcategories).length > 0) {
+                        Object.keys(level2.subcategories).forEach(level3Key => {
+                            const level3 = level2.subcategories[level3Key];
+                            html += `<div class="tree-level-3">📂 ${level3.name}</div>`;
+                            
+                            // Check for sub-sub-subcategories
+                            if (level3.subcategories && Object.keys(level3.subcategories).length > 0) {
+                                Object.keys(level3.subcategories).forEach(level4Key => {
+                                    const level4 = level3.subcategories[level4Key];
+                                    html += `<div class="tree-level-4">📂 ${level4.name}</div>`;
+                                    
+                                    Object.keys(level4.items).forEach(itemKey => {
+                                        const item = level4.items[itemKey];
+                                        const icon = item.type === 'image' ? '🖼️' : '📄';
+                                        html += `<div class="tree-item">${icon} ${item.name}</div>`;
+                                    });
+                                });
+                            } else {
+                                Object.keys(level3.items).forEach(itemKey => {
+                                    const item = level3.items[itemKey];
+                                    const icon = item.type === 'image' ? '🖼️' : '📄';
+                                    html += `<div class="tree-item">${icon} ${item.name}</div>`;
+                                });
+                            }
+                        });
+                    } else {
+                        Object.keys(level2.items).forEach(itemKey => {
+                            const item = level2.items[itemKey];
+                            const icon = item.type === 'image' ? '🖼️' : '📄';
+                            html += `<div class="tree-item">${icon} ${item.name}</div>`;
+                        });
+                    }
+                });
+            });
+            
+            preview.innerHTML = html;
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            navigator.clipboard.writeText(output.textContent).then(() => {
+                alert('Code copied to clipboard!');
+            });
+        }
+
+        function downloadJS() {
+            const jsCode = document.getElementById('output').textContent;
+            const blob = new Blob([jsCode], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hierarchyData.js';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function testHierarchy() {
+            // This would open the hierarchy selector with the new data
+            alert('This would open a test version of your hierarchy selector with the converted data. In the real implementation, this would let you preview your hierarchy before deploying.');
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

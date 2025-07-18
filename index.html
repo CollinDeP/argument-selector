@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Climate Argument Selector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb-item {
+            background: #e3f2fd;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .breadcrumb-item:hover {
+            background: #bbdefb;
+            transform: translateY(-1px);
+        }
+
+        .breadcrumb-item.active {
+            background: #2196F3;
+            color: white;
+        }
+
+        .breadcrumb-separator {
+            color: #666;
+            font-size: 14px;
+            align-self: center;
+        }
+
+        .main-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .level-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+
+        .option-card:hover {
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .option-card.selected {
+            border-color: #4CAF50;
+            background: #f1f8e9;
+        }
+
+        .option-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .option-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .item-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .item-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .item-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .selected-items {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 6px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .selected-items h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .selected-item {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .config-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .config-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .config-label {
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .config-input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .completion-title {
+            font-size: 28px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .completion-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .export-data {
+            background: #f1f3f4;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Configuration Panel -->
+        <div class="config-panel">
+            <div class="config-title">Configuration Settings</div>
+            <div class="config-row">
+                <label class="config-label">Required Selections:</label>
+                <input type="number" id="maxSelections" class="config-input" value="3" min="1" max="10">
+            </div>
+            <div class="config-row">
+                <label class="config-label">Prevent Duplicates:</label>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="preventDuplicates" checked>
+                    <label for="preventDuplicates">Enabled</label>
+                </div>
+            </div>
+            <div class="config-row">
+                <button class="btn btn-secondary" onclick="resetAll()">Reset All</button>
+            </div>
+        </div>
+
+        <!-- Header with progress and breadcrumbs -->
+        <div class="header">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Selection 1 of 3</div>
+            <div class="breadcrumb" id="breadcrumb">
+                <div class="breadcrumb-item active" onclick="navigateTo([])">Start</div>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <div class="level-title" id="levelTitle">Choose Your Argument Category</div>
+            <div class="options-grid" id="optionsGrid"></div>
+            
+            <div class="controls">
+                <button class="btn btn-secondary" id="backBtn" onclick="goBack()" disabled>Back</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Selected items display -->
+        <div class="selected-items" id="selectedItems" style="display: none;">
+            <h3>Selected Items (<span id="selectedCount">0</span>)</h3>
+            <div id="selectedList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data structure - this would be populated by your team
+        const hierarchyData = {
+            "economic": {
+                "name": "Economic Arguments",
+                "description": "Arguments focused on financial costs and benefits",
+                "subcategories": {
+                    "costs": {
+                        "name": "Cost Analysis",
+                        "description": "Arguments about the economic costs of climate action",
+                        "items": {
+                            "cost_renewable": {
+                                "name": "Renewable Energy Costs",
+                                "type": "text",
+                                "content": "Transitioning to renewable energy will cost $2.5 trillion over 10 years, but will save $4.2 trillion in health and environmental costs.",
+                                "tags": ["economic", "costs", "renewable"]
+                            },
+                            "cost_inaction": {
+                                "name": "Cost of Inaction",
+                                "type": "text", 
+                                "content": "The economic cost of climate inaction is estimated at $43 trillion globally by 2100.",
+                                "tags": ["economic", "costs", "inaction"]
+                            }
+                        }
+                    },
+                    "benefits": {
+                        "name": "Economic Benefits",
+                        "description": "Arguments about economic opportunities from climate action",
+                        "items": {
+                            "green_jobs": {
+                                "name": "Green Jobs Growth",
+                                "type": "text",
+                                "content": "The clean energy sector created 3.3 million jobs in the US in 2022, with 67% growth expected by 2030.",
+                                "tags": ["economic", "benefits", "jobs"]
+                            },
+                            "cost_renewable": {
+                                "name": "Renewable Energy Costs",
+                                "type": "text",
+                                "content": "Transitioning to renewable energy will cost $2.5 trillion over 10 years, but will save $4.2 trillion in health and environmental costs.",
+                                "tags": ["economic", "benefits", "renewable"]
+                            }
+                        }
+                    }
+                }
+            },
+            "scientific": {
+                "name": "Scientific Evidence",
+                "description": "Arguments based on scientific research and data",
+                "subcategories": {
+                    "data": {
+                        "name": "Climate Data",
+                        "description": "Hard scientific data about climate change",
+                        "items": {
+                            "temperature_rise": {
+                                "name": "Global Temperature Rise",
+                                "type": "image",
+                                "content": "https://via.placeholder.com/400x300/4CAF50/white?text=Temperature+Chart",
+                                "alt": "Chart showing global temperature rise of 1.1°C since pre-industrial times",
+                                "description": "Global average temperature has risen by 1.1°C since pre-industrial times",
+                                "tags": ["scientific", "data", "temperature"]
+                            },
+                            "co2_levels": {
+                                "name": "CO2 Concentration",
+                                "type": "text",
+                                "content": "Atmospheric CO2 levels have reached 421 ppm in 2023, the highest in 3 million years.",
+                                "tags": ["scientific", "data", "co2"]
+                            }
+                        }
+                    },
+                    "research": {
+                        "name": "Research Studies",
+                        "description": "Peer-reviewed research on climate impacts",
+                        "items": {
+                            "ipcc_report": {
+                                "name": "IPCC 2023 Report",
+                                "type": "text",
+                                "content": "The IPCC's 2023 report confirms that human activities are unequivocally the cause of global warming, with 99% scientific consensus.",
+                                "tags": ["scientific", "research", "ipcc"]
+                            }
+                        }
+                    }
+                }
+            },
+            "social": {
+                "name": "Social Arguments",
+                "description": "Arguments focused on social justice and human impacts",
+                "subcategories": {
+                    "justice": {
+                        "name": "Environmental Justice",
+                        "description": "Arguments about climate impact on vulnerable populations",
+                        "items": {
+                            "vulnerable_communities": {
+                                "name": "Impact on Vulnerable Communities",
+                                "type": "text",
+                                "content": "Climate change disproportionately affects low-income communities and communities of color, who contribute least to emissions but face the greatest impacts.",
+                                "tags": ["social", "justice", "equity"]
+                            }
+                        }
+                    },
+                    "health": {
+                        "name": "Public Health",
+                        "description": "Arguments about health impacts of climate change",
+                        "items": {
+                            "air_quality": {
+                                "name": "Air Quality Impact",
+                                "type": "text",
+                                "content": "Climate change worsens air quality, leading to increased respiratory diseases affecting 7 million deaths annually worldwide.",
+                                "tags": ["social", "health", "air"]
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        // Global state
+        let currentPath = [];
+        let currentSelection = 0;
+        let maxSelections = 3;
+        let selectedItems = [];
+        let preventDuplicates = true;
+
+        // Initialize the application
+        function init() {
+            updateConfig();
+            renderCurrentLevel();
+            updateProgress();
+            updateSelectedItems();
+        }
+
+        // Update configuration from inputs
+        function updateConfig() {
+            maxSelections = parseInt(document.getElementById('maxSelections').value);
+            preventDuplicates = document.getElementById('preventDuplicates').checked;
+            document.getElementById('progressText').textContent = `Selection ${currentSelection + 1} of ${maxSelections}`;
+        }
+
+        // Render the current level of the hierarchy
+        function renderCurrentLevel() {
+            const container = document.getElementById('optionsGrid');
+            const titleElement = document.getElementById('levelTitle');
+            
+            // Get current level data
+            const currentData = getCurrentLevelData();
+            
+            if (!currentData) {
+                container.innerHTML = '<p>No data available at this level.</p>';
+                return;
+            }
+
+            // Update title
+            if (currentPath.length === 0) {
+                titleElement.textContent = 'Choose Your Argument Category';
+            } else if (currentPath.length === 1) {
+                titleElement.textContent = `Choose ${currentData.name} Subcategory`;
+            } else {
+                titleElement.textContent = `Choose Your ${currentData.name} Item`;
+            }
+
+            // Clear container
+            container.innerHTML = '';
+
+            // Render options based on current level
+            if (currentPath.length === 0) {
+                // Top level - show main categories
+                Object.keys(hierarchyData).forEach(key => {
+                    const category = hierarchyData[key];
+                    const card = createOptionCard(key, category.name, category.description);
+                    container.appendChild(card);
+                });
+            } else if (currentPath.length === 1) {
+                // Second level - show subcategories
+                const mainCategory = hierarchyData[currentPath[0]];
+                if (mainCategory.subcategories) {
+                    Object.keys(mainCategory.subcategories).forEach(key => {
+                        const subcat = mainCategory.subcategories[key];
+                        const card = createOptionCard(key, subcat.name, subcat.description);
+                        container.appendChild(card);
+                    });
+                }
+            } else if (currentPath.length === 2) {
+                // Third level - show items
+                const mainCategory = hierarchyData[currentPath[0]];
+                const subcategory = mainCategory.subcategories[currentPath[1]];
+                if (subcategory.items) {
+                    Object.keys(subcategory.items).forEach(key => {
+                        const item = subcategory.items[key];
+                        const isAlreadySelected = preventDuplicates && selectedItems.some(sel => sel.id === key);
+                        const card = createItemCard(key, item, isAlreadySelected);
+                        container.appendChild(card);
+                    });
+                }
+            }
+
+            updateButtons();
+        }
+
+        // Get current level data
+        function getCurrentLevelData() {
+            if (currentPath.length === 0) return { name: 'Categories' };
+            if (currentPath.length === 1) return hierarchyData[currentPath[0]];
+            if (currentPath.length === 2) return hierarchyData[currentPath[0]].subcategories[currentPath[1]];
+            return null;
+        }
+
+        // Create option card for categories/subcategories
+        function createOptionCard(key, name, description) {
+            const card = document.createElement('div');
+            card.className = 'option-card';
+            card.onclick = () => selectOption(key);
+            
+            card.innerHTML = `
+                <div class="option-title">${name}</div>
+                <div class="option-description">${description}</div>
+            `;
+            
+            return card;
+        }
+
+        // Create item card for final items
+        function createItemCard(key, item, isDisabled) {
+            const card = document.createElement('div');
+            card.className = `option-card ${isDisabled ? 'disabled' : ''}`;
+            
+            if (!isDisabled) {
+                card.onclick = () => selectItem(key, item);
+            }
+            
+            let content = '';
+            if (item.type === 'image') {
+                content = `
+                    <div class="item-content">
+                        <img src="${item.content}" alt="${item.alt}" class="item-image">
+                        <div class="item-text">${item.description || item.name}</div>
+                    </div>
+                `;
+            } else {
+                content = `
+                    <div class="option-title">${item.name}</div>
+                    <div class="option-description">${item.content.substring(0, 100)}...</div>
+                `;
+            }
+            
+            if (isDisabled) {
+                content += '<div style="color: #999; font-style: italic; margin-top: 10px;">Already selected</div>';
+            }
+            
+            card.innerHTML = content;
+            return card;
+        }
+
+        // Select an option (category/subcategory)
+        function selectOption(key) {
+            currentPath.push(key);
+            renderCurrentLevel();
+            updateBreadcrumb();
+        }
+
+        // Select an item (final selection)
+        function selectItem(key, item) {
+            const pathString = [...currentPath, item.name].join(' > ');
+            
+            selectedItems.push({
+                id: key,
+                name: item.name,
+                path: pathString,
+                pathArray: [...currentPath, item.name],
+                content: item.content,
+                type: item.type,
+                tags: item.tags || []
+            });
+
+            currentSelection++;
+            
+            if (currentSelection >= maxSelections) {
+                showCompletionScreen();
+            } else {
+                // Reset for next selection
+                currentPath = [];
+                renderCurrentLevel();
+                updateBreadcrumb();
+                updateProgress();
+                updateSelectedItems();
+            }
+        }
+
+        // Navigation functions
+        function navigateTo(path) {
+            currentPath = [...path];
+            renderCurrentLevel();
+            updateBreadcrumb();
+        }
+
+        function goBack() {
+            if (currentPath.length > 0) {
+                currentPath.pop();
+                renderCurrentLevel();
+                updateBreadcrumb();
+            }
+        }
+
+        function goNext() {
+            // This would be used if we had a different flow
+        }
+
+        // Update breadcrumb navigation
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = '';
+            
+            // Start button
+            const startBtn = document.createElement('div');
+            startBtn.className = `breadcrumb-item ${currentPath.length === 0 ? 'active' : ''}`;
+            startBtn.textContent = 'Start';
+            startBtn.onclick = () => navigateTo([]);
+            breadcrumb.appendChild(startBtn);
+            
+            // Path buttons
+            for (let i = 0; i < currentPath.length; i++) {
+                const separator = document.createElement('div');
+                separator.className = 'breadcrumb-separator';
+                separator.textContent = '>';
+                breadcrumb.appendChild(separator);
+                
+                const pathBtn = document.createElement('div');
+                pathBtn.className = `breadcrumb-item ${i === currentPath.length - 1 ? 'active' : ''}`;
+                
+                // Get readable name for path element
+                if (i === 0) {
+                    pathBtn.textContent = hierarchyData[currentPath[i]].name;
+                } else if (i === 1) {
+                    pathBtn.textContent = hierarchyData[currentPath[0]].subcategories[currentPath[i]].name;
+                }
+                
+                pathBtn.onclick = () => navigateTo(currentPath.slice(0, i + 1));
+                breadcrumb.appendChild(pathBtn);
+            }
+        }
+
+        // Update progress bar and text
+        function updateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            const progressPercent = (currentSelection / maxSelections) * 100;
+            progressFill.style.width = `${progressPercent}%`;
+            progressText.textContent = `Selection ${currentSelection + 1} of ${maxSelections}`;
+        }
+
+        // Update selected items display
+        function updateSelectedItems() {
+            const selectedItemsDiv = document.getElementById('selectedItems');
+            const selectedCount = document.getElementById('selectedCount');
+            const selectedList = document.getElementById('selectedList');
+            
+            if (selectedItems.length > 0) {
+                selectedItemsDiv.style.display = 'block';
+                selectedCount.textContent = selectedItems.length;
+                
+                selectedList.innerHTML = '';
+                selectedItems.forEach((item, index) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'selected-item';
+                    itemDiv.innerHTML = `<strong>${index + 1}.</strong> ${item.name} <br><small>${item.path}</small>`;
+                    selectedList.appendChild(itemDiv);
+                });
+            } else {
+                selectedItemsDiv.style.display = 'none';
+            }
+        }
+
+        // Update button states
+        function updateButtons() {
+            const backBtn = document.getElementById('backBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            backBtn.disabled = currentPath.length === 0;
+            nextBtn.disabled = true; // We're using direct selection, not next button
+        }
+
+        // Show completion screen
+        function showCompletionScreen() {
+            const mainContent = document.querySelector('.main-content');
+            
+            // Prepare export data
+            const exportData = {
+                totalSelections: selectedItems.length,
+                selections: selectedItems.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    path: item.path,
+                    pathArray: item.pathArray,
+                    type: item.type,
+                    tags: item.tags
+                })),
+                timestamp: new Date().toISOString()
+            };
+            
+            mainContent.innerHTML = `
+                <div class="completion-screen">
+                    <div class="completion-title">✓ Selection Complete!</div>
+                    <p>You have successfully selected ${selectedItems.length} items for your climate argument.</p>
+                    
+                    <div class="completion-summary">
+                        <h3>Your Selected Items:</h3>
+                        ${selectedItems.map((item, index) => `
+                            <div class="selected-item">
+                                <strong>${index + 1}. ${item.name}</strong><br>
+                                <small>Path: ${item.path}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="export-data">
+                        <strong>Export Data (for Qualtrics):</strong><br>
+                        ${JSON.stringify(exportData, null, 2)}
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="exportToQualtrics()">Continue to Qualtrics</button>
+                        <button class="btn btn-secondary" onclick="resetAll()">Start Over</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Export to Qualtrics (placeholder)
+        function exportToQualtrics() {
+            // This would normally redirect to Qualtrics with the data
+            alert('This would normally redirect to Qualtrics with your selection data. Check the console for the export data.');
+            console.log('Export data for Qualtrics:', {
+                totalSelections: selectedItems.length,
+                selections: selectedItems
+            });
+        }
+
+        // Reset everything
+        function resetAll() {
+            currentPath = [];
+            currentSelection = 0;
+            selectedItems = [];
+            updateConfig();
+            renderCurrentLevel();
+            updateBreadcrumb();
+            updateProgress();
+            updateSelectedItems();
+        }
+
+        // Event listeners
+        document.getElementById('maxSelections').addEventListener('change', updateConfig);
+        document.getElementById('preventDuplicates').addEventListener('change', updateConfig);
+
+        // Initialize on page load
+        window.onload = init;
+    </script>
+</body>
+</html>
