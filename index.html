@@ -393,7 +393,7 @@
             <div class="config-row">
                 <label class="config-label">CSV Source:</label>
                 <input type="text" id="csvUrl" class="config-input" 
-                       value="https://raw.githubusercontent.com/collindep/argument-selector/main/data/arguments.csv" 
+                       value="https://raw.githubusercontent.com/CollinDeP/argument-selector/main/data/arguments.csv" 
                        style="width: 400px;">
             </div>
             <div class="config-row">
@@ -470,7 +470,16 @@
                 }
                 
                 const csvText = await response.text();
+                console.log('CSV text length:', csvText.length);
+                console.log('First 200 characters:', csvText.substring(0, 200));
+                
                 const data = parseCSV(csvText);
+                console.log('Parsed data rows:', data.length);
+                
+                if (data.length === 0) {
+                    throw new Error('No data rows found in CSV');
+                }
+                
                 buildHierarchy(data);
                 renderCurrentLevel();
                 updateProgress();
@@ -537,6 +546,9 @@
         function buildHierarchy(data) {
             hierarchyData = {};
             itemsData = {};
+            
+            console.log('Building hierarchy from', data.length, 'rows');
+            console.log('First row:', data[0]);
             
             data.forEach(row => {
                 // Store item data
