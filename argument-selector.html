@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Climate Argument Selector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb-item {
+            background: #e3f2fd;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .breadcrumb-item:hover {
+            background: #bbdefb;
+            transform: translateY(-1px);
+        }
+
+        .breadcrumb-item.active {
+            background: #2196F3;
+            color: white;
+        }
+
+        .breadcrumb-separator {
+            color: #666;
+            font-size: 14px;
+            align-self: center;
+        }
+
+        .main-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #f5c6cb;
+        }
+
+        .level-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .option-card:hover:not(.disabled) {
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .option-card.disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            background: #f5f5f5;
+        }
+
+        .option-card.selected-elsewhere {
+            border-color: #ff9800;
+            background: #fff3e0;
+        }
+
+        .option-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .option-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .item-content {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .item-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .item-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .selection-note {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            font-size: 12px;
+            font-style: italic;
+            padding: 5px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .selection-note.already-selected {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+        .selection-note.selected-elsewhere {
+            background: #fff3e0;
+            color: #f57c00;
+            border: 1px solid #ffcc80;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .selected-items {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 6px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .selected-items h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .selected-item {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .config-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .config-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .config-label {
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .config-input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .completion-title {
+            font-size: 28px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .completion-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .export-data {
+            background: #f1f3f4;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            background: #2196F3;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Configuration Panel -->
+        <div class="config-panel">
+            <div class="config-title">Configuration Settings</div>
+            <div class="config-row">
+                <label class="config-label">Required Selections:</label>
+                <input type="number" id="maxSelections" class="config-input" value="3" min="1" max="10">
+            </div>
+            <div class="config-row">
+                <label class="config-label">Prevent Duplicates:</label>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="preventDuplicates" checked>
+                    <label for="preventDuplicates">Enabled</label>
+                </div>
+            </div>
+            <div class="config-row">
+                <label class="config-label">CSV Source:</label>
+                <input type="text" id="csvUrl" class="config-input" 
+                       value="https://raw.githubusercontent.com/collindep/argument-selector/main/data/arguments.csv" 
+                       style="width: 400px;">
+            </div>
+            <div class="config-row">
+                <button class="btn btn-secondary" onclick="reloadData()">Reload Data</button>
+                <button class="btn btn-secondary" onclick="resetAll()">Reset All</button>
+            </div>
+        </div>
+
+        <!-- Header with progress and breadcrumbs -->
+        <div class="header">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Selection 1 of 3</div>
+            <div class="breadcrumb" id="breadcrumb">
+                <div class="breadcrumb-item active" onclick="navigateTo([])">Start</div>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content" id="mainContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                Loading data...
+            </div>
+        </div>
+
+        <!-- Selected items display -->
+        <div class="selected-items" id="selectedItems" style="display: none;">
+            <h3>Selected Items (<span id="selectedCount">0</span>)</h3>
+            <div id="selectedList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let hierarchyData = null;
+        let itemsData = {};  // Store all items by ID
+        let currentPath = [];
+        let currentSelection = 0;
+        let maxSelections = 3;
+        let selectedItems = [];
+        let preventDuplicates = true;
+
+        // Initialize the application
+        async function init() {
+            updateConfig();
+            await loadDataFromCSV();
+        }
+
+        // Update configuration from inputs
+        function updateConfig() {
+            maxSelections = parseInt(document.getElementById('maxSelections').value);
+            preventDuplicates = document.getElementById('preventDuplicates').checked;
+            document.getElementById('progressText').textContent = `Selection ${currentSelection + 1} of ${maxSelections}`;
+        }
+
+        // Load data from CSV
+        async function loadDataFromCSV() {
+            const csvUrl = document.getElementById('csvUrl').value;
+            const mainContent = document.getElementById('mainContent');
+            
+            mainContent.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Loading data from CSV...
+                </div>
+            `;
+
+            try {
+                const response = await fetch(csvUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch CSV: ${response.statusText}`);
+                }
+                
+                const csvText = await response.text();
+                const data = parseCSV(csvText);
+                buildHierarchy(data);
+                renderCurrentLevel();
+                updateProgress();
+                updateSelectedItems();
+                
+            } catch (error) {
+                mainContent.innerHTML = `
+                    <div class="error-message">
+                        <h3>Error Loading Data</h3>
+                        <p>${error.message}</p>
+                        <p>Please check that the CSV file exists at the specified URL and try again.</p>
+                        <button class="btn btn-secondary" onclick="reloadData()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Parse CSV text into data array
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                
+                const values = parseCSVLine(lines[i]);
+                const row = {};
+                
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                
+                data.push(row);
+            }
+            
+            return data;
+        }
+
+        // Parse a single CSV line handling quotes
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        // Build hierarchy from CSV data
+        function buildHierarchy(data) {
+            hierarchyData = {};
+            itemsData = {};
+            
+            data.forEach(row => {
+                // Store item data
+                const itemId = row.ItemID;
+                if (!itemsData[itemId]) {
+                    itemsData[itemId] = {
+                        id: itemId,
+                        name: row.ItemName,
+                        type: row.ItemType,
+                        content: row.ItemType === 'text' ? row.TextContent : row.ImageFilename,
+                        alt: row.AltText,
+                        description: row.Description,
+                        tags: row.Tags ? row.Tags.split(',').map(t => t.trim()) : [],
+                        paths: []  // Track all paths where this item appears
+                    };
+                }
+                
+                // Build path
+                const levels = [];
+                for (let i = 1; i <= 5; i++) {
+                    const level = row[`Level${i}`];
+                    if (level && level.trim()) {
+                        levels.push(level.trim());
+                    }
+                }
+                
+                // Add path to item
+                itemsData[itemId].paths.push(levels);
+                
+                // Build hierarchy structure
+                let current = hierarchyData;
+                
+                levels.forEach((level, index) => {
+                    const key = level.toLowerCase().replace(/\s+/g, '_');
+                    
+                    if (!current[key]) {
+                        current[key] = {
+                            name: level,
+                            description: `${level} related arguments`,
+                            subcategories: {},
+                            items: []
+                        };
+                    }
+                    
+                    // If this is the last level, add the item
+                    if (index === levels.length - 1) {
+                        if (!current[key].items.includes(itemId)) {
+                            current[key].items.push(itemId);
+                        }
+                    }
+                    
+                    current = current[key].subcategories;
+                });
+            });
+        }
+
+        // Render the current level of the hierarchy
+        function renderCurrentLevel() {
+            const mainContent = document.getElementById('mainContent');
+            
+            let titleText = 'Choose Your Argument Category';
+            let currentData = hierarchyData;
+            
+            // Navigate to current level
+            currentPath.forEach((key, index) => {
+                currentData = currentData[key];
+                if (index === currentPath.length - 1) {
+                    titleText = `Choose from ${currentData.name}`;
+                } else {
+                    currentData = currentData.subcategories;
+                }
+            });
+            
+            // Clear and set title
+            mainContent.innerHTML = `
+                <div class="level-title" id="levelTitle">${titleText}</div>
+                <div class="options-grid" id="optionsGrid"></div>
+                <div class="controls">
+                    <button class="btn btn-secondary" id="backBtn" onclick="goBack()" ${currentPath.length === 0 ? 'disabled' : ''}>Back</button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled>Next</button>
+                </div>
+            `;
+            
+            const optionsGrid = document.getElementById('optionsGrid');
+            
+            // Check if we have items at this level
+            if (currentData.items && currentData.items.length > 0) {
+                // Render items
+                currentData.items.forEach(itemId => {
+                    const item = itemsData[itemId];
+                    const card = createItemCard(item);
+                    optionsGrid.appendChild(card);
+                });
+            } else if (Object.keys(currentData.subcategories).length > 0) {
+                // Render subcategories
+                Object.keys(currentData.subcategories).forEach(key => {
+                    const subcat = currentData.subcategories[key];
+                    const card = createCategoryCard(key, subcat);
+                    optionsGrid.appendChild(card);
+                });
+            } else {
+                optionsGrid.innerHTML = '<p style="color: #666;">No items available at this level.</p>';
+            }
+        }
+
+        // Create category card
+        function createCategoryCard(key, category) {
+            const card = document.createElement('div');
+            card.className = 'option-card';
+            card.onclick = () => selectCategory(key);
+            
+            // Count total items under this category
+            const itemCount = countItemsInCategory(category);
+            
+            card.innerHTML = `
+                <div class="option-title">${category.name}</div>
+                <div class="option-description">${category.description}</div>
+                <div style="margin-top: 10px; font-size: 12px; color: #888;">
+                    ${itemCount} item${itemCount !== 1 ? 's' : ''} available
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Count items recursively in a category
+        function countItemsInCategory(category) {
+            let count = category.items ? category.items.length : 0;
+            
+            Object.values(category.subcategories || {}).forEach(subcat => {
+                count += countItemsInCategory(subcat);
+            });
+            
+            return count;
+        }
+
+        // Create item card
+        function createItemCard(item) {
+            const card = document.createElement('div');
+            
+            // Check if item is already selected
+            const existingSelection = selectedItems.find(sel => sel.id === item.id);
+            const isDisabled = preventDuplicates && existingSelection;
+            const selectedFromDifferentPath = existingSelection && 
+                JSON.stringify(existingSelection.pathArray) !== JSON.stringify([...currentPath, item.name]);
+            
+            card.className = `option-card ${isDisabled ? 'disabled' : ''} ${selectedFromDifferentPath ? 'selected-elsewhere' : ''}`;
+            
+            if (!isDisabled) {
+                card.onclick = () => selectItem(item);
+            }
+            
+            let content = '';
+            if (item.type === 'image') {
+                // Handle image URL
+                let imageUrl = item.content;
+                if (!imageUrl.startsWith('http')) {
+                    // Assume it's in the images folder
+                    imageUrl = `https://raw.githubusercontent.com/collindep/argument-selector/main/images/${imageUrl}`;
+                }
+                
+                content = `
+                    <div class="item-content">
+                        <img src="${imageUrl}" alt="${item.alt}" class="item-image" 
+                             onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200/e0e0e0/666?text=Image+Not+Found';">
+                        <div class="option-title">${item.name}</div>
+                        ${item.description ? `<div class="item-text">${item.description}</div>` : ''}
+                    </div>
+                `;
+            } else {
+                content = `
+                    <div class="option-title">${item.name}</div>
+                    <div class="option-description">${item.content.substring(0, 150)}${item.content.length > 150 ? '...' : ''}</div>
+                `;
+            }
+            
+            // Add selection note if needed
+            if (isDisabled) {
+                if (selectedFromDifferentPath) {
+                    content += `<div class="selection-note selected-elsewhere">Already selected via: ${existingSelection.path}</div>`;
+                } else {
+                    content += `<div class="selection-note already-selected">Already selected from this path</div>`;
+                }
+            }
+            
+            card.innerHTML = content;
+            return card;
+        }
+
+        // Select a category
+        function selectCategory(key) {
+            currentPath.push(key);
+            renderCurrentLevel();
+            updateBreadcrumb();
+        }
+
+        // Select an item
+        function selectItem(item) {
+            const pathString = currentPath.map(key => {
+                let data = hierarchyData;
+                currentPath.slice(0, currentPath.indexOf(key) + 1).forEach(k => {
+                    data = data[k].subcategories;
+                });
+                return data[key] ? data[key].name : key;
+            }).join(' > ');
+            
+            selectedItems.push({
+                id: item.id,
+                name: item.name,
+                path: pathString,
+                pathArray: [...currentPath],
+                content: item.content,
+                type: item.type,
+                tags: item.tags,
+                selectionNumber: currentSelection + 1,
+                timestamp: new Date().toISOString()
+            });
+
+            currentSelection++;
+            
+            if (currentSelection >= maxSelections) {
+                showCompletionScreen();
+            } else {
+                // Reset for next selection
+                currentPath = [];
+                renderCurrentLevel();
+                updateBreadcrumb();
+                updateProgress();
+                updateSelectedItems();
+            }
+        }
+
+        // Update breadcrumb navigation
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = '';
+            
+            // Start button
+            const startBtn = document.createElement('div');
+            startBtn.className = `breadcrumb-item ${currentPath.length === 0 ? 'active' : ''}`;
+            startBtn.textContent = 'Start';
+            startBtn.onclick = () => navigateTo([]);
+            breadcrumb.appendChild(startBtn);
+            
+            // Path buttons
+            let data = hierarchyData;
+            currentPath.forEach((key, index) => {
+                const separator = document.createElement('div');
+                separator.className = 'breadcrumb-separator';
+                separator.textContent = '>';
+                breadcrumb.appendChild(separator);
+                
+                const pathBtn = document.createElement('div');
+                pathBtn.className = `breadcrumb-item ${index === currentPath.length - 1 ? 'active' : ''}`;
+                pathBtn.textContent = data[key].name;
+                pathBtn.onclick = () => navigateTo(currentPath.slice(0, index + 1));
+                breadcrumb.appendChild(pathBtn);
+                
+                data = data[key].subcategories;
+            });
+        }
+
+        // Navigation functions
+        function navigateTo(path) {
+            currentPath = [...path];
+            renderCurrentLevel();
+            updateBreadcrumb();
+        }
+
+        function goBack() {
+            if (currentPath.length > 0) {
+                currentPath.pop();
+                renderCurrentLevel();
+                updateBreadcrumb();
+            }
+        }
+
+        function goNext() {
+            // Not used in this implementation
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            const progressPercent = (currentSelection / maxSelections) * 100;
+            progressFill.style.width = `${progressPercent}%`;
+            progressText.textContent = `Selection ${currentSelection + 1} of ${maxSelections}`;
+        }
+
+        // Update selected items display
+        function updateSelectedItems() {
+            const selectedItemsDiv = document.getElementById('selectedItems');
+            const selectedCount = document.getElementById('selectedCount');
+            const selectedList = document.getElementById('selectedList');
+            
+            if (selectedItems.length > 0) {
+                selectedItemsDiv.style.display = 'block';
+                selectedCount.textContent = selectedItems.length;
+                
+                selectedList.innerHTML = '';
+                selectedItems.forEach((item, index) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'selected-item';
+                    itemDiv.innerHTML = `
+                        <strong>${index + 1}.</strong> ${item.name} 
+                        <br><small>Path: ${item.path}</small>
+                    `;
+                    selectedList.appendChild(itemDiv);
+                });
+            } else {
+                selectedItemsDiv.style.display = 'none';
+            }
+        }
+
+        // Show completion screen
+        function showCompletionScreen() {
+            const mainContent = document.getElementById('mainContent');
+            
+            // Prepare export data
+            const exportData = {
+                participant_id: "QUALTRICS_RESPONSE_ID", // Placeholder for Qualtrics
+                total_selections: selectedItems.length,
+                selections: selectedItems.map(item => ({
+                    selection_number: item.selectionNumber,
+                    item_id: item.id,
+                    item_name: item.name,
+                    item_type: item.type,
+                    path_taken: item.path,
+                    path_array: item.pathArray,
+                    content: item.type === 'text' ? item.content : `[Image: ${item.content}]`,
+                    tags: item.tags,
+                    timestamp: item.timestamp
+                })),
+                completion_timestamp: new Date().toISOString()
+            };
+            
+            const exportDataString = JSON.stringify(exportData, null, 2);
+            
+            mainContent.innerHTML = `
+                <div class="completion-screen">
+                    <div class="completion-title">✓ Selection Complete!</div>
+                    <p>You have successfully selected ${selectedItems.length} items for your climate argument.</p>
+                    
+                    <div class="completion-summary">
+                        <h3>Your Selected Items:</h3>
+                        ${selectedItems.map((item, index) => `
+                            <div class="selected-item">
+                                <strong>${index + 1}. ${item.name}</strong><br>
+                                <small>Path: ${item.path}</small><br>
+                                <small>Type: ${item.type}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div>
+                        <h4>Export Data for Qualtrics:</h4>
+                        <div class="export-data" id="exportData">${exportDataString}</div>
+                        <button class="copy-btn" onclick="copyExportData()">📋 Copy to Clipboard</button>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="continueToQualtrics()">Continue to Qualtrics</button>
+                        <button class="btn btn-secondary" onclick="resetAll()">Start Over</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Copy export data to clipboard
+        function copyExportData() {
+            const exportData = document.getElementById('exportData').textContent;
+            navigator.clipboard.writeText(exportData).then(() => {
+                alert('Data copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy data. Please select and copy manually.');
+            });
+        }
+
+        // Continue to Qualtrics
+        function continueToQualtrics() {
+            // Prepare data for URL parameters
+            const exportData = {
+                selections: selectedItems.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    path: item.path,
+                    type: item.type
+                }))
+            };
+            
+            // In production, this would redirect to your Qualtrics survey with the data
+            // For now, we'll show how to pass the data
+            const encodedData = encodeURIComponent(JSON.stringify(exportData));
+            
+            // Example Qualtrics URL structure:
+            // https://yourorg.qualtrics.com/jfe/form/SV_xxxxx?embedded_data=${encodedData}
+            
+            alert('Ready to redirect to Qualtrics!\n\nThe selection data has been prepared for transfer.\n\nIn production, this would redirect to your Qualtrics survey with the embedded data.');
+            
+            console.log('Data for Qualtrics:', exportData);
+            console.log('Encoded data for URL:', encodedData);
+        }
+
+        // Reload data
+        function reloadData() {
+            currentPath = [];
+            currentSelection = 0;
+            selectedItems = [];
+            init();
+        }
+
+        // Reset everything
+        function resetAll() {
+            currentPath = [];
+            currentSelection = 0;
+            selectedItems = [];
+            updateConfig();
+            renderCurrentLevel();
+            updateBreadcrumb();
+            updateProgress();
+            updateSelectedItems();
+        }
+
+        // Event listeners
+        document.getElementById('maxSelections').addEventListener('change', function() {
+            updateConfig();
+            if (currentSelection >= maxSelections) {
+                showCompletionScreen();
+            }
+        });
+        
+        document.getElementById('preventDuplicates').addEventListener('change', function() {
+            updateConfig();
+            renderCurrentLevel();
+        });
+
+        // Initialize on page load
+        window.onload = init;
+    </script>
+</body>
+</html>
