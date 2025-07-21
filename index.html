@@ -92,38 +92,6 @@
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            min-height: 400px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 18px;
-            color: #666;
-        }
-
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4CAF50;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 20px;
-            border-radius: 6px;
-            margin: 20px 0;
-            border-left: 4px solid #f5c6cb;
         }
 
         .level-title {
@@ -147,24 +115,17 @@
             cursor: pointer;
             transition: all 0.2s;
             background: #fafafa;
-            position: relative;
         }
 
-        .option-card:hover:not(.disabled) {
+        .option-card:hover {
             border-color: #4CAF50;
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .option-card.disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            background: #f5f5f5;
-        }
-
-        .option-card.selected-elsewhere {
-            border-color: #ff9800;
-            background: #fff3e0;
+        .option-card.selected {
+            border-color: #4CAF50;
+            background: #f1f8e9;
         }
 
         .option-title {
@@ -182,46 +143,22 @@
 
         .item-content {
             text-align: center;
-            padding: 10px 0;
+            padding: 20px;
         }
 
         .item-image {
             max-width: 100%;
-            max-height: 200px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 300px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .item-text {
-            font-size: 14px;
-            line-height: 1.5;
-            color: #555;
-            margin-top: 10px;
-        }
-
-        .selection-note {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            font-size: 12px;
-            font-style: italic;
-            padding: 5px;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .selection-note.already-selected {
-            background: #e8f5e8;
-            color: #2e7d32;
-            border: 1px solid #a5d6a7;
-        }
-
-        .selection-note.selected-elsewhere {
-            background: #fff3e0;
-            color: #f57c00;
-            border: 1px solid #ffcc80;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 15px;
         }
 
         .controls {
@@ -354,23 +291,6 @@
             font-size: 12px;
             white-space: pre-wrap;
             text-align: left;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .copy-btn {
-            background: #2196F3;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-
-        .copy-btn:hover {
-            background: #1976D2;
         }
     </style>
 </head>
@@ -391,13 +311,6 @@
                 </div>
             </div>
             <div class="config-row">
-                <label class="config-label">CSV Source:</label>
-                <input type="text" id="csvUrl" class="config-input" 
-                       value="https://raw.githubusercontent.com/CollinDeP/argument-selector/main/data/arguments.csv" 
-                       style="width: 400px;">
-            </div>
-            <div class="config-row">
-                <button class="btn btn-secondary" onclick="reloadData()">Reload Data</button>
                 <button class="btn btn-secondary" onclick="resetAll()">Reset All</button>
             </div>
         </div>
@@ -414,10 +327,13 @@
         </div>
 
         <!-- Main content area -->
-        <div class="main-content" id="mainContent">
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                Loading data...
+        <div class="main-content">
+            <div class="level-title" id="levelTitle">Choose Your Argument Category</div>
+            <div class="options-grid" id="optionsGrid"></div>
+            
+            <div class="controls">
+                <button class="btn btn-secondary" id="backBtn" onclick="goBack()" disabled>Back</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled>Next</button>
             </div>
         </div>
 
@@ -429,9 +345,121 @@
     </div>
 
     <script>
+        // Sample data structure - this would be populated by your team
+        const hierarchyData = {
+            "economic": {
+                "name": "Economic Arguments",
+                "description": "Arguments focused on financial costs and benefits",
+                "subcategories": {
+                    "costs": {
+                        "name": "Cost Analysis",
+                        "description": "Arguments about the economic costs of climate action",
+                        "items": {
+                            "cost_renewable": {
+                                "name": "Renewable Energy Costs",
+                                "type": "text",
+                                "content": "Transitioning to renewable energy will cost $2.5 trillion over 10 years, but will save $4.2 trillion in health and environmental costs.",
+                                "tags": ["economic", "costs", "renewable"]
+                            },
+                            "cost_inaction": {
+                                "name": "Cost of Inaction",
+                                "type": "text", 
+                                "content": "The economic cost of climate inaction is estimated at $43 trillion globally by 2100.",
+                                "tags": ["economic", "costs", "inaction"]
+                            }
+                        }
+                    },
+                    "benefits": {
+                        "name": "Economic Benefits",
+                        "description": "Arguments about economic opportunities from climate action",
+                        "items": {
+                            "green_jobs": {
+                                "name": "Green Jobs Growth",
+                                "type": "text",
+                                "content": "The clean energy sector created 3.3 million jobs in the US in 2022, with 67% growth expected by 2030.",
+                                "tags": ["economic", "benefits", "jobs"]
+                            },
+                            "cost_renewable": {
+                                "name": "Renewable Energy Costs",
+                                "type": "text",
+                                "content": "Transitioning to renewable energy will cost $2.5 trillion over 10 years, but will save $4.2 trillion in health and environmental costs.",
+                                "tags": ["economic", "benefits", "renewable"]
+                            }
+                        }
+                    }
+                }
+            },
+            "scientific": {
+                "name": "Scientific Evidence",
+                "description": "Arguments based on scientific research and data",
+                "subcategories": {
+                    "data": {
+                        "name": "Climate Data",
+                        "description": "Hard scientific data about climate change",
+                        "items": {
+                            "temperature_rise": {
+                                "name": "Global Temperature Rise",
+                                "type": "image",
+                                "content": "https://via.placeholder.com/400x300/4CAF50/white?text=Temperature+Chart",
+                                "alt": "Chart showing global temperature rise of 1.1°C since pre-industrial times",
+                                "description": "Global average temperature has risen by 1.1°C since pre-industrial times",
+                                "tags": ["scientific", "data", "temperature"]
+                            },
+                            "co2_levels": {
+                                "name": "CO2 Concentration",
+                                "type": "text",
+                                "content": "Atmospheric CO2 levels have reached 421 ppm in 2023, the highest in 3 million years.",
+                                "tags": ["scientific", "data", "co2"]
+                            }
+                        }
+                    },
+                    "research": {
+                        "name": "Research Studies",
+                        "description": "Peer-reviewed research on climate impacts",
+                        "items": {
+                            "ipcc_report": {
+                                "name": "IPCC 2023 Report",
+                                "type": "text",
+                                "content": "The IPCC's 2023 report confirms that human activities are unequivocally the cause of global warming, with 99% scientific consensus.",
+                                "tags": ["scientific", "research", "ipcc"]
+                            }
+                        }
+                    }
+                }
+            },
+            "social": {
+                "name": "Social Arguments",
+                "description": "Arguments focused on social justice and human impacts",
+                "subcategories": {
+                    "justice": {
+                        "name": "Environmental Justice",
+                        "description": "Arguments about climate impact on vulnerable populations",
+                        "items": {
+                            "vulnerable_communities": {
+                                "name": "Impact on Vulnerable Communities",
+                                "type": "text",
+                                "content": "Climate change disproportionately affects low-income communities and communities of color, who contribute least to emissions but face the greatest impacts.",
+                                "tags": ["social", "justice", "equity"]
+                            }
+                        }
+                    },
+                    "health": {
+                        "name": "Public Health",
+                        "description": "Arguments about health impacts of climate change",
+                        "items": {
+                            "air_quality": {
+                                "name": "Air Quality Impact",
+                                "type": "text",
+                                "content": "Climate change worsens air quality, leading to increased respiratory diseases affecting 7 million deaths annually worldwide.",
+                                "tags": ["social", "health", "air"]
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
         // Global state
-        let hierarchyData = null;
-        let itemsData = {};  // Store all items by ID
         let currentPath = [];
         let currentSelection = 0;
         let maxSelections = 3;
@@ -439,9 +467,11 @@
         let preventDuplicates = true;
 
         // Initialize the application
-        async function init() {
+        function init() {
             updateConfig();
-            await loadDataFromCSV();
+            renderCurrentLevel();
+            updateProgress();
+            updateSelectedItems();
         }
 
         // Update configuration from inputs
@@ -451,320 +481,139 @@
             document.getElementById('progressText').textContent = `Selection ${currentSelection + 1} of ${maxSelections}`;
         }
 
-        // Load data from CSV
-        async function loadDataFromCSV() {
-            const csvUrl = document.getElementById('csvUrl').value;
-            const mainContent = document.getElementById('mainContent');
-            
-            mainContent.innerHTML = `
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    Loading data from CSV...
-                </div>
-            `;
-
-            try {
-                const response = await fetch(csvUrl);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch CSV: ${response.statusText}`);
-                }
-                
-                const csvText = await response.text();
-                console.log('CSV text length:', csvText.length);
-                console.log('First 200 characters:', csvText.substring(0, 200));
-                
-                const data = parseCSV(csvText);
-                console.log('Parsed data rows:', data.length);
-                
-                if (data.length === 0) {
-                    throw new Error('No data rows found in CSV');
-                }
-                
-                buildHierarchy(data);
-                renderCurrentLevel();
-                updateProgress();
-                updateSelectedItems();
-                
-            } catch (error) {
-                mainContent.innerHTML = `
-                    <div class="error-message">
-                        <h3>Error Loading Data</h3>
-                        <p>${error.message}</p>
-                        <p>Please check that the CSV file exists at the specified URL and try again.</p>
-                        <button class="btn btn-secondary" onclick="reloadData()">Retry</button>
-                    </div>
-                `;
-            }
-        }
-
-        // Parse CSV text into data array
-        function parseCSV(csvText) {
-            const lines = csvText.trim().split('\n');
-            const headers = lines[0].split(',').map(h => h.trim());
-            const data = [];
-            
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i].trim() === '') continue;
-                
-                const values = parseCSVLine(lines[i]);
-                const row = {};
-                
-                headers.forEach((header, index) => {
-                    row[header] = values[index] || '';
-                });
-                
-                data.push(row);
-            }
-            
-            return data;
-        }
-
-        // Parse a single CSV line handling quotes
-        function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            
-            result.push(current.trim());
-            return result;
-        }
-
-        // Build hierarchy from CSV data
-        function buildHierarchy(data) {
-            hierarchyData = {};
-            itemsData = {};
-            
-            console.log('Building hierarchy from', data.length, 'rows');
-            console.log('First row:', data[0]);
-            
-            data.forEach(row => {
-                // Store item data
-                const itemId = row.ItemID;
-                if (!itemsData[itemId]) {
-                    itemsData[itemId] = {
-                        id: itemId,
-                        name: row.ItemName,
-                        type: row.ItemType,
-                        content: row.ItemType === 'text' ? row.TextContent : row.ImageFilename,
-                        alt: row.AltText,
-                        description: row.Description,
-                        tags: row.Tags ? row.Tags.split(',').map(t => t.trim()) : [],
-                        paths: []  // Track all paths where this item appears
-                    };
-                }
-                
-                // Build path
-                const levels = [];
-                for (let i = 1; i <= 5; i++) {
-                    const level = row[`Level${i}`];
-                    if (level && level.trim()) {
-                        levels.push(level.trim());
-                    }
-                }
-                
-                // Add path to item
-                itemsData[itemId].paths.push(levels);
-                
-                // Build hierarchy structure
-                let current = hierarchyData;
-                
-                levels.forEach((level, index) => {
-                    const key = level.toLowerCase().replace(/\s+/g, '_');
-                    
-                    if (!current[key]) {
-                        current[key] = {
-                            name: level,
-                            description: `${level} related arguments`,
-                            subcategories: {},
-                            items: []
-                        };
-                    }
-                    
-                    // If this is the last level, add the item
-                    if (index === levels.length - 1) {
-                        if (!current[key].items.includes(itemId)) {
-                            current[key].items.push(itemId);
-                        }
-                    }
-                    
-                    current = current[key].subcategories;
-                });
-            });
-        }
-
         // Render the current level of the hierarchy
         function renderCurrentLevel() {
-            const mainContent = document.getElementById('mainContent');
+            const container = document.getElementById('optionsGrid');
+            const titleElement = document.getElementById('levelTitle');
             
-            let titleText = 'Choose Your Argument Category';
-            let currentData = hierarchyData;
+            // Get current level data
+            const currentData = getCurrentLevelData();
             
-            // Navigate to current level
-            currentPath.forEach((key, index) => {
-                currentData = currentData[key];
-                if (index === currentPath.length - 1) {
-                    titleText = `Choose from ${currentData.name}`;
-                } else {
-                    currentData = currentData.subcategories;
-                }
-            });
-            
-            // Clear and set title
-            mainContent.innerHTML = `
-                <div class="level-title" id="levelTitle">${titleText}</div>
-                <div class="options-grid" id="optionsGrid"></div>
-                <div class="controls">
-                    <button class="btn btn-secondary" id="backBtn" onclick="goBack()" ${currentPath.length === 0 ? 'disabled' : ''}>Back</button>
-                    <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled>Next</button>
-                </div>
-            `;
-            
-            const optionsGrid = document.getElementById('optionsGrid');
-            
-            // Check if we have items at this level
-            if (currentData.items && currentData.items.length > 0) {
-                // Render items
-                currentData.items.forEach(itemId => {
-                    const item = itemsData[itemId];
-                    const card = createItemCard(item);
-                    optionsGrid.appendChild(card);
-                });
-            } else if (Object.keys(currentData.subcategories).length > 0) {
-                // Render subcategories
-                Object.keys(currentData.subcategories).forEach(key => {
-                    const subcat = currentData.subcategories[key];
-                    const card = createCategoryCard(key, subcat);
-                    optionsGrid.appendChild(card);
-                });
-            } else {
-                optionsGrid.innerHTML = '<p style="color: #666;">No items available at this level.</p>';
+            if (!currentData) {
+                container.innerHTML = '<p>No data available at this level.</p>';
+                return;
             }
+
+            // Update title
+            if (currentPath.length === 0) {
+                titleElement.textContent = 'Choose Your Argument Category';
+            } else if (currentPath.length === 1) {
+                titleElement.textContent = `Choose ${currentData.name} Subcategory`;
+            } else {
+                titleElement.textContent = `Choose Your ${currentData.name} Item`;
+            }
+
+            // Clear container
+            container.innerHTML = '';
+
+            // Render options based on current level
+            if (currentPath.length === 0) {
+                // Top level - show main categories
+                Object.keys(hierarchyData).forEach(key => {
+                    const category = hierarchyData[key];
+                    const card = createOptionCard(key, category.name, category.description);
+                    container.appendChild(card);
+                });
+            } else if (currentPath.length === 1) {
+                // Second level - show subcategories
+                const mainCategory = hierarchyData[currentPath[0]];
+                if (mainCategory.subcategories) {
+                    Object.keys(mainCategory.subcategories).forEach(key => {
+                        const subcat = mainCategory.subcategories[key];
+                        const card = createOptionCard(key, subcat.name, subcat.description);
+                        container.appendChild(card);
+                    });
+                }
+            } else if (currentPath.length === 2) {
+                // Third level - show items
+                const mainCategory = hierarchyData[currentPath[0]];
+                const subcategory = mainCategory.subcategories[currentPath[1]];
+                if (subcategory.items) {
+                    Object.keys(subcategory.items).forEach(key => {
+                        const item = subcategory.items[key];
+                        const isAlreadySelected = preventDuplicates && selectedItems.some(sel => sel.id === key);
+                        const card = createItemCard(key, item, isAlreadySelected);
+                        container.appendChild(card);
+                    });
+                }
+            }
+
+            updateButtons();
         }
 
-        // Create category card
-        function createCategoryCard(key, category) {
+        // Get current level data
+        function getCurrentLevelData() {
+            if (currentPath.length === 0) return { name: 'Categories' };
+            if (currentPath.length === 1) return hierarchyData[currentPath[0]];
+            if (currentPath.length === 2) return hierarchyData[currentPath[0]].subcategories[currentPath[1]];
+            return null;
+        }
+
+        // Create option card for categories/subcategories
+        function createOptionCard(key, name, description) {
             const card = document.createElement('div');
             card.className = 'option-card';
-            card.onclick = () => selectCategory(key);
-            
-            // Count total items under this category
-            const itemCount = countItemsInCategory(category);
+            card.onclick = () => selectOption(key);
             
             card.innerHTML = `
-                <div class="option-title">${category.name}</div>
-                <div class="option-description">${category.description}</div>
-                <div style="margin-top: 10px; font-size: 12px; color: #888;">
-                    ${itemCount} item${itemCount !== 1 ? 's' : ''} available
-                </div>
+                <div class="option-title">${name}</div>
+                <div class="option-description">${description}</div>
             `;
             
             return card;
         }
 
-        // Count items recursively in a category
-        function countItemsInCategory(category) {
-            let count = category.items ? category.items.length : 0;
-            
-            Object.values(category.subcategories || {}).forEach(subcat => {
-                count += countItemsInCategory(subcat);
-            });
-            
-            return count;
-        }
-
-        // Create item card
-        function createItemCard(item) {
+        // Create item card for final items
+        function createItemCard(key, item, isDisabled) {
             const card = document.createElement('div');
-            
-            // Check if item is already selected
-            const existingSelection = selectedItems.find(sel => sel.id === item.id);
-            const isDisabled = preventDuplicates && existingSelection;
-            const selectedFromDifferentPath = existingSelection && 
-                JSON.stringify(existingSelection.pathArray) !== JSON.stringify([...currentPath, item.name]);
-            
-            card.className = `option-card ${isDisabled ? 'disabled' : ''} ${selectedFromDifferentPath ? 'selected-elsewhere' : ''}`;
+            card.className = `option-card ${isDisabled ? 'disabled' : ''}`;
             
             if (!isDisabled) {
-                card.onclick = () => selectItem(item);
+                card.onclick = () => selectItem(key, item);
             }
             
             let content = '';
             if (item.type === 'image') {
-                // Handle image URL
-                let imageUrl = item.content;
-                if (!imageUrl.startsWith('http')) {
-                    // Assume it's in the images folder
-                    imageUrl = `https://raw.githubusercontent.com/collindep/argument-selector/main/images/${imageUrl}`;
-                }
-                
                 content = `
                     <div class="item-content">
-                        <img src="${imageUrl}" alt="${item.alt}" class="item-image" 
-                             onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200/e0e0e0/666?text=Image+Not+Found';">
-                        <div class="option-title">${item.name}</div>
-                        ${item.description ? `<div class="item-text">${item.description}</div>` : ''}
+                        <img src="${item.content}" alt="${item.alt}" class="item-image">
+                        <div class="item-text">${item.description || item.name}</div>
                     </div>
                 `;
             } else {
                 content = `
                     <div class="option-title">${item.name}</div>
-                    <div class="option-description">${item.content.substring(0, 150)}${item.content.length > 150 ? '...' : ''}</div>
+                    <div class="option-description">${item.content.substring(0, 100)}...</div>
                 `;
             }
             
-            // Add selection note if needed
             if (isDisabled) {
-                if (selectedFromDifferentPath) {
-                    content += `<div class="selection-note selected-elsewhere">Already selected via: ${existingSelection.path}</div>`;
-                } else {
-                    content += `<div class="selection-note already-selected">Already selected from this path</div>`;
-                }
+                content += '<div style="color: #999; font-style: italic; margin-top: 10px;">Already selected</div>';
             }
             
             card.innerHTML = content;
             return card;
         }
 
-        // Select a category
-        function selectCategory(key) {
+        // Select an option (category/subcategory)
+        function selectOption(key) {
             currentPath.push(key);
             renderCurrentLevel();
             updateBreadcrumb();
         }
 
-        // Select an item
-        function selectItem(item) {
-            const pathString = currentPath.map(key => {
-                let data = hierarchyData;
-                currentPath.slice(0, currentPath.indexOf(key) + 1).forEach(k => {
-                    data = data[k].subcategories;
-                });
-                return data[key] ? data[key].name : key;
-            }).join(' > ');
+        // Select an item (final selection)
+        function selectItem(key, item) {
+            const pathString = [...currentPath, item.name].join(' > ');
             
             selectedItems.push({
-                id: item.id,
+                id: key,
                 name: item.name,
                 path: pathString,
-                pathArray: [...currentPath],
+                pathArray: [...currentPath, item.name],
                 content: item.content,
                 type: item.type,
-                tags: item.tags,
-                selectionNumber: currentSelection + 1,
-                timestamp: new Date().toISOString()
+                tags: item.tags || []
             });
 
             currentSelection++;
@@ -779,36 +628,6 @@
                 updateProgress();
                 updateSelectedItems();
             }
-        }
-
-        // Update breadcrumb navigation
-        function updateBreadcrumb() {
-            const breadcrumb = document.getElementById('breadcrumb');
-            breadcrumb.innerHTML = '';
-            
-            // Start button
-            const startBtn = document.createElement('div');
-            startBtn.className = `breadcrumb-item ${currentPath.length === 0 ? 'active' : ''}`;
-            startBtn.textContent = 'Start';
-            startBtn.onclick = () => navigateTo([]);
-            breadcrumb.appendChild(startBtn);
-            
-            // Path buttons
-            let data = hierarchyData;
-            currentPath.forEach((key, index) => {
-                const separator = document.createElement('div');
-                separator.className = 'breadcrumb-separator';
-                separator.textContent = '>';
-                breadcrumb.appendChild(separator);
-                
-                const pathBtn = document.createElement('div');
-                pathBtn.className = `breadcrumb-item ${index === currentPath.length - 1 ? 'active' : ''}`;
-                pathBtn.textContent = data[key].name;
-                pathBtn.onclick = () => navigateTo(currentPath.slice(0, index + 1));
-                breadcrumb.appendChild(pathBtn);
-                
-                data = data[key].subcategories;
-            });
         }
 
         // Navigation functions
@@ -827,10 +646,44 @@
         }
 
         function goNext() {
-            // Not used in this implementation
+            // This would be used if we had a different flow
         }
 
-        // Update progress bar
+        // Update breadcrumb navigation
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = '';
+            
+            // Start button
+            const startBtn = document.createElement('div');
+            startBtn.className = `breadcrumb-item ${currentPath.length === 0 ? 'active' : ''}`;
+            startBtn.textContent = 'Start';
+            startBtn.onclick = () => navigateTo([]);
+            breadcrumb.appendChild(startBtn);
+            
+            // Path buttons
+            for (let i = 0; i < currentPath.length; i++) {
+                const separator = document.createElement('div');
+                separator.className = 'breadcrumb-separator';
+                separator.textContent = '>';
+                breadcrumb.appendChild(separator);
+                
+                const pathBtn = document.createElement('div');
+                pathBtn.className = `breadcrumb-item ${i === currentPath.length - 1 ? 'active' : ''}`;
+                
+                // Get readable name for path element
+                if (i === 0) {
+                    pathBtn.textContent = hierarchyData[currentPath[i]].name;
+                } else if (i === 1) {
+                    pathBtn.textContent = hierarchyData[currentPath[0]].subcategories[currentPath[i]].name;
+                }
+                
+                pathBtn.onclick = () => navigateTo(currentPath.slice(0, i + 1));
+                breadcrumb.appendChild(pathBtn);
+            }
+        }
+
+        // Update progress bar and text
         function updateProgress() {
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
@@ -854,10 +707,7 @@
                 selectedItems.forEach((item, index) => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'selected-item';
-                    itemDiv.innerHTML = `
-                        <strong>${index + 1}.</strong> ${item.name} 
-                        <br><small>Path: ${item.path}</small>
-                    `;
+                    itemDiv.innerHTML = `<strong>${index + 1}.</strong> ${item.name} <br><small>${item.path}</small>`;
                     selectedList.appendChild(itemDiv);
                 });
             } else {
@@ -865,29 +715,32 @@
             }
         }
 
+        // Update button states
+        function updateButtons() {
+            const backBtn = document.getElementById('backBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            backBtn.disabled = currentPath.length === 0;
+            nextBtn.disabled = true; // We're using direct selection, not next button
+        }
+
         // Show completion screen
         function showCompletionScreen() {
-            const mainContent = document.getElementById('mainContent');
+            const mainContent = document.querySelector('.main-content');
             
             // Prepare export data
             const exportData = {
-                participant_id: "QUALTRICS_RESPONSE_ID", // Placeholder for Qualtrics
-                total_selections: selectedItems.length,
+                totalSelections: selectedItems.length,
                 selections: selectedItems.map(item => ({
-                    selection_number: item.selectionNumber,
-                    item_id: item.id,
-                    item_name: item.name,
-                    item_type: item.type,
-                    path_taken: item.path,
-                    path_array: item.pathArray,
-                    content: item.type === 'text' ? item.content : `[Image: ${item.content}]`,
-                    tags: item.tags,
-                    timestamp: item.timestamp
+                    id: item.id,
+                    name: item.name,
+                    path: item.path,
+                    pathArray: item.pathArray,
+                    type: item.type,
+                    tags: item.tags
                 })),
-                completion_timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString()
             };
-            
-            const exportDataString = JSON.stringify(exportData, null, 2);
             
             mainContent.innerHTML = `
                 <div class="completion-screen">
@@ -899,68 +752,32 @@
                         ${selectedItems.map((item, index) => `
                             <div class="selected-item">
                                 <strong>${index + 1}. ${item.name}</strong><br>
-                                <small>Path: ${item.path}</small><br>
-                                <small>Type: ${item.type}</small>
+                                <small>Path: ${item.path}</small>
                             </div>
                         `).join('')}
                     </div>
                     
-                    <div>
-                        <h4>Export Data for Qualtrics:</h4>
-                        <div class="export-data" id="exportData">${exportDataString}</div>
-                        <button class="copy-btn" onclick="copyExportData()">📋 Copy to Clipboard</button>
+                    <div class="export-data">
+                        <strong>Export Data (for Qualtrics):</strong><br>
+                        ${JSON.stringify(exportData, null, 2)}
                     </div>
                     
                     <div style="margin-top: 20px;">
-                        <button class="btn btn-primary" onclick="continueToQualtrics()">Continue to Qualtrics</button>
+                        <button class="btn btn-primary" onclick="exportToQualtrics()">Continue to Qualtrics</button>
                         <button class="btn btn-secondary" onclick="resetAll()">Start Over</button>
                     </div>
                 </div>
             `;
         }
 
-        // Copy export data to clipboard
-        function copyExportData() {
-            const exportData = document.getElementById('exportData').textContent;
-            navigator.clipboard.writeText(exportData).then(() => {
-                alert('Data copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                alert('Failed to copy data. Please select and copy manually.');
+        // Export to Qualtrics (placeholder)
+        function exportToQualtrics() {
+            // This would normally redirect to Qualtrics with the data
+            alert('This would normally redirect to Qualtrics with your selection data. Check the console for the export data.');
+            console.log('Export data for Qualtrics:', {
+                totalSelections: selectedItems.length,
+                selections: selectedItems
             });
-        }
-
-        // Continue to Qualtrics
-        function continueToQualtrics() {
-            // Prepare data for URL parameters
-            const exportData = {
-                selections: selectedItems.map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    path: item.path,
-                    type: item.type
-                }))
-            };
-            
-            // In production, this would redirect to your Qualtrics survey with the data
-            // For now, we'll show how to pass the data
-            const encodedData = encodeURIComponent(JSON.stringify(exportData));
-            
-            // Example Qualtrics URL structure:
-            // https://yourorg.qualtrics.com/jfe/form/SV_xxxxx?embedded_data=${encodedData}
-            
-            alert('Ready to redirect to Qualtrics!\n\nThe selection data has been prepared for transfer.\n\nIn production, this would redirect to your Qualtrics survey with the embedded data.');
-            
-            console.log('Data for Qualtrics:', exportData);
-            console.log('Encoded data for URL:', encodedData);
-        }
-
-        // Reload data
-        function reloadData() {
-            currentPath = [];
-            currentSelection = 0;
-            selectedItems = [];
-            init();
         }
 
         // Reset everything
@@ -976,17 +793,8 @@
         }
 
         // Event listeners
-        document.getElementById('maxSelections').addEventListener('change', function() {
-            updateConfig();
-            if (currentSelection >= maxSelections) {
-                showCompletionScreen();
-            }
-        });
-        
-        document.getElementById('preventDuplicates').addEventListener('change', function() {
-            updateConfig();
-            renderCurrentLevel();
-        });
+        document.getElementById('maxSelections').addEventListener('change', updateConfig);
+        document.getElementById('preventDuplicates').addEventListener('change', updateConfig);
 
         // Initialize on page load
         window.onload = init;
